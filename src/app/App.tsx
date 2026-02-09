@@ -3,7 +3,6 @@ import { LogbookTable } from './components/LogbookTable';
 import { LogbookForm } from './components/LogbookForm';
 import { Plus, FileDown, RefreshCw } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-import Swal from 'sweetalert2';
 
 export interface LogbookEntry {
   no: number;
@@ -109,7 +108,8 @@ export default function App() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message);
+        // throw new Error(result.message);
+        toast.error(result);
       }
 
       toast.success('Entry berhasil diupdate');

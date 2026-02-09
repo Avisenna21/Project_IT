@@ -8,25 +8,32 @@ interface LogbookFormProps {
   onClose: () => void;
 }
 
-// helper: ambil tanggal lokal (YYYY-MM-DD)
-const getLocalDate = () => {
+/**
+ * Helper function to get the current date in the local timezone.
+ * The date is returned in the format 'YYYY-MM-DD'.
+ * @returns {string} The current date in the local timezone.
+ */
+const getLocalDate = (): string => {
   const now = new Date();
-  const local = new Date(
-    now.getTime() - now.getTimezoneOffset() * 60000
-  );
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  /**
+   * The toISOString() method returns a string with the date portion of the
+   * timestamp in the format 'YYYY-MM-DDTHH:M:S.sssZ'.
+   * We slice the string to get the date portion only.
+   */
   return local.toISOString().slice(0, 10);
 };
 
 export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
   const [formData, setFormData] = useState({
-     tanggal: "",
+    tanggal: entry?.tanggal || getLocalDate(), // ✅ Fix: gunakan getLocalDate() atau entry.tanggal
     modul_fitur: entry?.modul_fitur || '',
     aktivitas: entry?.aktivitas || '',
     detail_teknis: entry?.detail_teknis || '',
     kendala: entry?.kendala || '',
     solusi: entry?.solusi || '',
-    status: entry?.status || '',
-    pic: entry?.pic || ''
+    status: entry?.status || '', // ✅ Perhatikan ini
+    pic: entry?.pic || '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,13 +42,13 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -65,11 +72,10 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
     if (!validate()) return;
 
     setIsSubmitting(true);
+    console.log('Submitting form data:', formData);
     try {
       await onSubmit({
         ...formData,
-        // kalau backend mau Date object, buka baris ini
-        // tanggal: new Date(formData.tanggal),
       });
       onClose();
     } finally {
@@ -95,7 +101,7 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
             {entry ? 'Edit Entry Logbook' : 'Tambah Entry Logbook'}
           </h2>
           <button
-          title='Tutup'
+            title="Tutup"
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full"
           >
@@ -106,26 +112,24 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Tanggal */}
+          {/* Tanggal */}
           <div>
             <label className="block text-sm font-medium mb-1">
               Tanggal <span className="text-red-500">*</span>
             </label>
             <input
-            title='Masukkan tanggal'
+              title="Masukkan tanggal"
               type="date"
               name="tanggal"
-            value={formData.tanggal}
-               onChange={(e) =>
-    setFormData({ ...formData, tanggal: e.target.value })
-  }
+              value={formData.tanggal}
+              onChange={handleChange}
+              max={getLocalDate()} // ✅ Tambahkan ini - batas maksimal hari ini
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                 errors.tanggal ? 'border-red-500' : 'border-gray-300'
               }`}
             />
             {errors.tanggal && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.tanggal}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.tanggal}</p>
             )}
           </div>
 
@@ -135,7 +139,7 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
               Modul / Fitur <span className="text-red-500">*</span>
             </label>
             <input
-            title='Modul / Fitur yang diperbaiki'
+              title="Modul / Fitur yang diperbaiki"
               type="text"
               name="modul_fitur"
               value={formData.modul_fitur}
@@ -145,9 +149,7 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
               }`}
             />
             {errors.modul_fitur && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.modul_fitur}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.modul_fitur}</p>
             )}
           </div>
 
@@ -157,7 +159,7 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
               Aktivitas <span className="text-red-500">*</span>
             </label>
             <input
-            title='Aktivitas yang dilakukan'
+              title="Aktivitas yang dilakukan"
               type="text"
               name="aktivitas"
               value={formData.aktivitas}
@@ -167,9 +169,7 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
               }`}
             />
             {errors.aktivitas && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.aktivitas}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.aktivitas}</p>
             )}
           </div>
 
@@ -179,7 +179,7 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
               Detail Teknis
             </label>
             <textarea
-            title='Detail teknis yang dilakukan'
+              title="Detail teknis yang dilakukan"
               name="detail_teknis"
               value={formData.detail_teknis}
               onChange={handleChange}
@@ -190,11 +190,9 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
 
           {/* Kendala */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Kendala
-            </label>
+            <label className="block text-sm font-medium mb-1">Kendala</label>
             <textarea
-            title='Kendala yang di alami'
+              title="Kendala yang di alami"
               name="kendala"
               value={formData.kendala}
               onChange={handleChange}
@@ -205,11 +203,9 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
 
           {/* Solusi */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Solusi
-            </label>
+            <label className="block text-sm font-medium mb-1">Solusi</label>
             <textarea
-            title='Solusi yang dilakukan'
+              title="Solusi yang dilakukan"
               name="solusi"
               value={formData.solusi}
               onChange={handleChange}
@@ -218,19 +214,22 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
             />
           </div>
 
-          {/* Status */}
+          {/* Status - ✅ PERBAIKAN UTAMA */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Status
-            </label>
-            <input
-            title='Status pengerjaan'
-              type="text"
-              name="status"
-              value={formData.status}
+            <label className="block text-sm font-medium mb-1">Status</label>
+            <select
+              title="Status pengerjaan" // ✅ Fix: title yang benar
+              name="status" // ✅ Fix: name="status"
+              value={formData.status} // ✅ Fix: formData.status
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg"
-            />
+            >
+              <option value="">-- Pilih Status --</option>
+              <option value="open">Open</option>
+              <option value="on progress">On Progress</option>
+              <option value="done">Done</option>
+              <option value="canceled">Canceled</option>
+            </select>
           </div>
 
           {/* PIC */}
@@ -239,7 +238,7 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
               PIC <span className="text-red-500">*</span>
             </label>
             <input
-            title='Penanggung jawab'
+              title="Penanggung jawab"
               type="text"
               name="pic"
               value={formData.pic}
@@ -249,9 +248,7 @@ export function LogbookForm({ entry, onSubmit, onClose }: LogbookFormProps) {
               }`}
             />
             {errors.pic && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.pic}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.pic}</p>
             )}
           </div>
 
